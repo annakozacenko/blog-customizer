@@ -16,34 +16,90 @@ import {
 	defaultArticleState,
 	OptionType,
 } from 'src/constants/articleProps';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+type ArticleSettings = {
+	fontFamily: OptionType;
+	fontSize: OptionType;
+	fontColor: OptionType;
+	backgroundColor: OptionType;
+	contentWidth: OptionType;
+};
 
 type ArticleParamsFormProps = {
-	handleChangeFormSettings: (value:any) => void;
-	articleSettings: any;
+	handleChangeFormSettings: (value: ArticleSettings) => void;
+	articleSettings: ArticleSettings;
 };
 
 export const ArticleParamsForm = ({
-	handleChangeFormSettings, articleSettings
+	handleChangeFormSettings,
+	articleSettings,
 }: ArticleParamsFormProps) => {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
-	const tempSettingsRef = useRef(articleSettings);
-const handleChangeTempSettings = (key: string, value: OptionType) => {
-		tempSettingsRef.current = {
-			...tempSettingsRef.current,
-			[key]: value,
-		};
+	const [tempSettings, setTempSettings] = useState(articleSettings);
+	const asideRef = useRef<HTMLElement>(null);
+
+	const defaultSettings: ArticleSettings = {
+		fontFamily: defaultArticleState.fontFamilyOption,
+		fontSize: defaultArticleState.fontSizeOption,
+		fontColor: defaultArticleState.fontColor,
+		backgroundColor: defaultArticleState.backgroundColor,
+		contentWidth: defaultArticleState.contentWidth,
 	};
+
+	const handleChangeTempSettings = (key: string, value: OptionType) => {
+		setTempSettings((prev: ArticleSettings) => ({
+			...prev,
+			[key]: value,
+		}));
+	};
+
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		handleChangeFormSettings(tempSettings);
+	};
+
+	const handleReset = () => {
+		setTempSettings(defaultSettings);
+		handleChangeFormSettings(defaultSettings);
+	};
+
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				asideRef.current &&
+				!asideRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		};
+		if (isOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isOpen]);
 
 	return (
 		<>
-			<ArrowButton isOpen={true} onClick={() => {}} />
+			<ArrowButton
+				isOpen={isOpen}
+				onClick={() => {
+					setIsOpen((prev) => !prev);
+				}}
+			/>
 
 			<aside
+				ref={asideRef}
 				className={clsx(styles.container, {
-					[styles.container_open]: true,
+					[styles.container_open]: isOpen,
 				})}>
-				<form className={styles.form}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
 					<Text size={31} weight={800} uppercase={true}>
 						Задайте параметры
 					</Text>
@@ -52,33 +108,29 @@ const handleChangeTempSettings = (key: string, value: OptionType) => {
 						onChange={(option) =>
 							handleChangeTempSettings('fontFamily', option)
 						}
-						placeholder={defaultArticleState.fontFamilyOption.title}
-						selected={articleSettings.fontFamily}
+						placeholder={defaultSettings.fontFamily.title}
+						selected={tempSettings.fontFamily}
 						options={fontFamilyOptions}
 					/>
 					<RadioGroup
 						title='Размер шрифта'
 						options={fontSizeOptions}
 						name='Размер'
-						selected={articleSettings.fontSize}
-						onChange={(option) =>
-							handleChangeTempSettings('fontSize', option)
-						}
+						selected={tempSettings.fontSize}
+						onChange={(option) => handleChangeTempSettings('fontSize', option)}
 					/>
 					<Select
 						title='Цвет шрифта'
-						placeholder={defaultArticleState.fontColor.title}
-						selected={articleSettings.fontColor}
+						placeholder={defaultSettings.fontColor.title}
+						selected={tempSettings.fontColor}
 						options={fontColors}
-						onChange={(option) =>
-							handleChangeTempSettings('fontColor', option)
-						}
+						onChange={(option) => handleChangeTempSettings('fontColor', option)}
 					/>
 					<Separator />
 					<Select
 						title='Цвет фона'
-						placeholder={defaultArticleState.backgroundColor.title}
-						selected={articleSettings.backgroundColor}
+						placeholder={defaultSettings.backgroundColor.title}
+						selected={tempSettings.backgroundColor}
 						options={backgroundColors}
 						onChange={(option) =>
 							handleChangeTempSettings('backgroundColor', option)
@@ -86,8 +138,8 @@ const handleChangeTempSettings = (key: string, value: OptionType) => {
 					/>
 					<Select
 						title='Ширина контента'
-						placeholder={defaultArticleState.contentWidth.title}
-						selected={articleSettings.contentWidth}
+						placeholder={defaultSettings.contentWidth.title}
+						selected={tempSettings.contentWidth}
 						options={contentWidthArr}
 						onChange={(option) =>
 							handleChangeTempSettings('contentWidth', option)
@@ -95,9 +147,7 @@ const handleChangeTempSettings = (key: string, value: OptionType) => {
 					/>
 					<div className={styles.bottomContainer}>
 						<Button title='Сбросить' htmlType='reset' type='clear' />
-						<Button title='Применить' htmlType='submit' type='apply' onClick={()=>
-							handleChangeFormSettings(tempSettingsRef.current)
-						} />
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>

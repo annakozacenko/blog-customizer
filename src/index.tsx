@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import { Article } from './components/article/Article';
 import { ArticleParamsForm } from './components/article-params-form/ArticleParamsForm';
-import { defaultArticleState, OptionType } from './constants/articleProps';
+import { defaultArticleState } from './constants/articleProps';
 
 import './styles/index.scss';
 import styles from './styles/index.module.scss';
@@ -13,7 +13,6 @@ const domNode = document.getElementById('root') as HTMLDivElement;
 const root = createRoot(domNode);
 
 const App = () => {
-	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const [articleSettings, setArticleSettings] = useState({
 		fontFamily: defaultArticleState.fontFamilyOption,
 		fontSize: defaultArticleState.fontSizeOption,
@@ -22,9 +21,6 @@ const App = () => {
 		contentWidth: defaultArticleState.contentWidth,
 	});
 
-	// const handleChangeSettings = (value) => {
-	// 	setArticleSettings((value));
-	// };
 	return (
 		<main
 			className={clsx(styles.main)}
@@ -37,8 +33,10 @@ const App = () => {
 					'--bg-color': articleSettings.backgroundColor.value,
 				} as CSSProperties
 			}>
-			<ArticleParamsForm handleChangeFormSettings={setArticleSettings}
-			 articleSettings={articleSettings}  />
+			<ArticleParamsForm
+				handleChangeFormSettings={setArticleSettings}
+				articleSettings={articleSettings}
+			/>
 			<Article />
 		</main>
 	);
